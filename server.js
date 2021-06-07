@@ -1,7 +1,9 @@
 const next = require("next");
-const { Cards, Colors } = require("./game/uno");
+const { Cards, Colors, Deck } = require("./game/uno");
 
 const cardNames = Object.keys(Cards);
+
+const shuffle = require("shuffle-array");
 
 const app = require("express")();
 const server = require("http").Server(app);
@@ -62,6 +64,7 @@ io.on("connection", (socket) => {
       if (socket.isMaster) {
         rooms[room] = {
           started: false,
+          deck: shuffle(Deck, { copy: true }),
           currentPlayer: null,
           direction: "right",
           boardCard: null,
@@ -86,8 +89,14 @@ io.on("connection", (socket) => {
       let players = Object.keys(rooms[socket.room].boardPlayers);
       for (let i = 0; i < players.length; i++) {
         for (let j = 0; j < 7; j++) {
-          rooms[socket.room].boardPlayers[players[i]].hand.push(
-            Cards[cardNames[Math.floor(Math.random() * cardNames.length)]]
+          let card =
+            rooms[socket.room].deck[
+              Math.floor(Math.random() * rooms[socket.room].deck.length)
+            ];
+          rooms[socket.room].boardPlayers[players[i]].hand.push(Cards[card]);
+          rooms[socket.room].deck.splice(
+            rooms[socket.room].deck.indexOf(card),
+            1
           );
         }
         rooms[socket.room].boardPlayers[players[i]].socket.emit(
@@ -95,7 +104,7 @@ io.on("connection", (socket) => {
           rooms[socket.room].boardPlayers[players[i]].hand
         );
       }
-      let cardNameSafe = cardNames;
+      let cardNameSafe = rooms[socket.room].deck;
       cardNameSafe.splice(cardNameSafe.indexOf("drawFour"), 1);
       cardNameSafe.splice(cardNameSafe.indexOf("wild"), 1);
 
@@ -104,9 +113,10 @@ io.on("connection", (socket) => {
         cardNameSafe.splice(cardNameSafe.indexOf(`${Colors[i]}Reverse`), 1);
         cardNameSafe.splice(cardNameSafe.indexOf(`${Colors[i]}DrawTwo`), 1);
       }
+      let card = cardNameSafe[Math.floor(Math.random() * cardNameSafe.length)];
+      rooms[socket.room].boardCard = Cards[card];
+      rooms[socket.room].deck.splice(rooms[socket.room].deck.indexOf(card), 1);
 
-      rooms[socket.room].boardCard =
-        Cards[cardNameSafe[Math.floor(Math.random() * cardNameSafe.length)]];
       sendPlayersInfo(socket.room);
       nextPlayer(socket.room);
       io.to(socket.room).emit("boardCard", rooms[socket.room].boardCard);
@@ -130,19 +140,27 @@ io.on("connection", (socket) => {
 
     if (card.hasNumber == false && card.action == "drawFour") {
       playCard(card, socket);
-      for (let j = 0; j < 4; j++) {
+      if (rooms[socket.room].deck.length != 0) {
+        for (let j = 0; j < 4; j++) {
+          let card =
+            rooms[socket.room].deck[
+              Math.floor(Math.random() * rooms[socket.room].deck.length)
+            ];
+          rooms[socket.room].boardPlayers[
+            rooms[socket.room].currentPlayer
+          ].hand.push(Cards[card]);
+          rooms[socket.room].deck.splice(
+            rooms[socket.room].deck.indexOf(card),
+            1
+          );
+        }
         rooms[socket.room].boardPlayers[
           rooms[socket.room].currentPlayer
-        ].hand.push(
-          Cards[cardNames[Math.floor(Math.random() * cardNames.length)]]
+        ].socket.emit(
+          "getCards",
+          rooms[socket.room].boardPlayers[rooms[socket.room].currentPlayer].hand
         );
       }
-      rooms[socket.room].boardPlayers[
-        rooms[socket.room].currentPlayer
-      ].socket.emit(
-        "getCards",
-        rooms[socket.room].boardPlayers[rooms[socket.room].currentPlayer].hand
-      );
       nextPlayer(socket.room);
       return;
     }
@@ -151,15 +169,6 @@ io.on("connection", (socket) => {
       card.hasNumber == false &&
       card.color == rooms[socket.room].boardCard.color &&
       card.action == "skip"
-    ) {
-      playCard(card, socket);
-      nextPlayer(socket.room);
-      return;
-    }
-    if (
-      card.hasNumber == false &&
-      card.action == "skip" &&
-      rooms[socket.room].boardCard.action == "skip"
     ) {
       playCard(card, socket);
       nextPlayer(socket.room);
@@ -182,27 +191,34 @@ io.on("connection", (socket) => {
       card.action == "drawTwo"
     ) {
       playCard(card, socket);
-      for (let j = 0; j < 2; j++) {
+      if (rooms[socket.room].deck.length != 0) {
+        for (let j = 0; j < 2; j++) {
+          let card =
+            rooms[socket.room].deck[
+              Math.floor(Math.random() * rooms[socket.room].deck.length)
+            ];
+          rooms[socket.room].boardPlayers[
+            rooms[socket.room].currentPlayer
+          ].hand.push(Cards[card]);
+          rooms[socket.room].deck.splice(
+            rooms[socket.room].deck.indexOf(card),
+            1
+          );
+        }
         rooms[socket.room].boardPlayers[
           rooms[socket.room].currentPlayer
-        ].hand.push(
-          Cards[cardNames[Math.floor(Math.random() * cardNames.length)]]
+        ].socket.emit(
+          "getCards",
+          rooms[socket.room].boardPlayers[rooms[socket.room].currentPlayer].hand
         );
       }
-      rooms[socket.room].boardPlayers[
-        rooms[socket.room].currentPlayer
-      ].socket.emit(
-        "getCards",
-        rooms[socket.room].boardPlayers[rooms[socket.room].currentPlayer].hand
-      );
       nextPlayer(socket.room);
       return;
     }
 
     if (
-      card.hasNumber == true &&
-      (card.color == rooms[socket.room].boardCard.color ||
-        card.number == rooms[socket.room].boardCard.number)
+      card.color == rooms[socket.room].boardCard.color ||
+      card.number == rooms[socket.room].boardCard.number
     ) {
       playCard(card, socket);
       return;
@@ -232,6 +248,7 @@ io.on("connection", (socket) => {
   socket.on("drawCard", () => {
     if (rooms[socket.room] == undefined) return;
     if (socket.id != rooms[socket.room].currentPlayer) return;
+    if (rooms[socket.room].deck.length == 0) return;
 
     rooms[socket.room].boardPlayers[socket.id].hand.push(
       Cards[cardNames[Math.floor(Math.random() * cardNames.length)]]
@@ -317,6 +334,9 @@ io.on("connection", (socket) => {
       rooms[socket.room].boardPlayers[socket.id].hand,
       card
     );
+    rooms[socket.room].deck.push(rooms[socket.room].boardCard.id);
+    shuffle(rooms[socket.room].deck);
+
     rooms[socket.room].boardCard = card;
     rooms[socket.room].boardPlayers[socket.id].hand.splice(cardIndex, 1);
     socket.emit("getCards", rooms[socket.room].boardPlayers[socket.id].hand);
