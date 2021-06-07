@@ -227,6 +227,14 @@ io.on("connection", (socket) => {
       playCard(card, socket);
       return;
     }
+    
+    if (
+      card.hasNumber == false &&
+      card.action == rooms[socket.room].boardCard.action
+    ) {
+      playCard(card, socket);
+      return;
+    }
   });
   socket.on("disconnect", () => {
     const players =
