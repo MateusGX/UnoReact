@@ -323,7 +323,7 @@ io.on("connection", (socket) => {
       } else if (playersIDs.indexOf(rooms[room].currentPlayer) == 0) {
         rooms[room].currentPlayer =
           rooms[room].boardPlayers[playersIDs[playersIDs.length - 1]].socket.id;
-      } else if (playersIDs.indexOf(rooms[room].currentPlayer.socket.id) > 0) {
+      } else if (playersIDs.indexOf(rooms[room].currentPlayer) > 0) {
         rooms[room].currentPlayer =
           rooms[room].boardPlayers[
             playersIDs[playersIDs.indexOf(rooms[room].currentPlayer) - 1]
