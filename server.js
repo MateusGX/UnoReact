@@ -216,8 +216,12 @@ io.on("connection", (socket) => {
       return;
     }
 
+    if (card.color == rooms[socket.room].boardCard.color) {
+      playCard(card, socket);
+      return;
+    }
     if (
-      card.color == rooms[socket.room].boardCard.color ||
+      card.hasNumber == true &&
       card.number == rooms[socket.room].boardCard.number
     ) {
       playCard(card, socket);
