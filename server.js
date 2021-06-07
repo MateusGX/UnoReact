@@ -227,7 +227,7 @@ io.on("connection", (socket) => {
       playCard(card, socket);
       return;
     }
-    
+
     if (
       card.hasNumber == false &&
       card.action == rooms[socket.room].boardCard.action
@@ -245,7 +245,13 @@ io.on("connection", (socket) => {
     if (players == 0) {
       delete rooms[socket.room];
     } else if (players == 1) {
-      io.to(socket.room).emit("win", socket.username);
+      delete rooms[socket.room].boardPlayers[socket.id];
+      
+      let lastPlayer = Object.keys(rooms[socket.room].boardPlayers);
+      io.to(socket.room).emit(
+        "win",
+        rooms[socket.room].boardPlayers[lastPlayer[0]]
+      );
     } else {
       delete rooms[socket.room].boardPlayers[socket.id];
     }
