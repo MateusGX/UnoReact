@@ -38,12 +38,6 @@ export default function Board(props: {
           alt=""
           className={styles.boardCard}
           style={{
-            boxShadow: `0px 0px 20px ${
-              props.boardCard.action == "wild" ||
-              props.boardCard.action == "drawFour"
-                ? colors[props.boardCard.color]
-                : "transparent"
-            }`,
             borderRadius: props.boardCard.action == "wild" ||
             props.boardCard.action == "drawFour"
               ? 20

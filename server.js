@@ -68,14 +68,7 @@ io.on("connection", (socket) => {
           boardPlayers: {
             [socket.id]: {
               socket,
-              hand: [{
-                svg: "/cards/yellowDrawTwo.svg",
-                color: "yello",
-                hasNumber: false,
-                number: null,
-                action: "drawTwo",
-                id: "yellowDrawTwo",
-              }],
+              hand: [],
             },
           },
         };
