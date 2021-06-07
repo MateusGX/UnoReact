@@ -1,25 +1,16 @@
 .container {
   min-height: 100vh;
   background-color: #262D3D;
-}
-
-.container main h1{
-  color: white;
-}
-
-.container main{
-  width: 100vw;
-  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+}
+.container main{
+  display: flex;
   flex-direction: column;
-}
-.container main img{
-  width: 100px;
-}
-.container main img{
-  width: 100px;
+  align-items: center;
+  justify-content: center;
 }
 .container main input{
   border: none;
@@ -60,22 +51,4 @@
   outline: none;
   margin-top: 10px;
   background-color: #1e232e;
-}
-
-.main{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: white;
-  margin-bottom: 10px;
-}
-.main div{
-  display: flex;
-  flex-direction: column;
-}
-.main h1{
-  margin: 0px;
-}
-.main h2{
-  margin: 0px;
 }
