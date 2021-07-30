@@ -6,12 +6,15 @@ import Head from "next/head";
 import Board from "../../components/Board";
 import { io } from "socket.io-client";
 
+import { Cards } from '../../game/uno';
+
 const socket = io();
 
 export default function Game() {
   const router = useRouter();
   const { room } = router.query;
   const [isValid, setIsValid] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [cards, setCards] = useState([]);
   const [boardCard, setBoardCard] = useState(null);
   const [started, setStarted] = useState(false);
@@ -29,6 +32,11 @@ export default function Game() {
       socket.on("valid", (valid) => {
         setIsValid(valid);
       });
+      Object.keys(Cards).map(key => {
+        let imgLoad = new Image();
+        imgLoad.src = Cards[key].svg;
+      });
+      setIsLoaded(true);
       socket.on("joined", (isMasterSocket) => {
         setJoined(true);
         setIsMaster(isMasterSocket);
@@ -85,6 +93,8 @@ export default function Game() {
         <h1>Loading...</h1>
       ) : !isValid ? (
         <h1>Full Room</h1>
+      ) : !isLoaded ? (
+        <h1>Loading Resources...</h1>
       ) : isValid && !joined ? (
         <main>
           <input

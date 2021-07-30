@@ -111,6 +111,9 @@ const Deck = [
   "drawFour",
 ];
 
+/**
+ * @type {any}
+ */
 const Cards = {
   blue0: {
     svg: "/cards/blue0.svg",
